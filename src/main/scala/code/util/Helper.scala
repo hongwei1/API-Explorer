@@ -156,4 +156,6 @@ Returns a string which can be used for the title of the account
     case JNothing => ""
     case v => pretty(render(v))
   }
+
+//  lazy var allResoucesVar ; 
 }

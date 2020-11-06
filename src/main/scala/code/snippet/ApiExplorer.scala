@@ -597,7 +597,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
 
   
   def showResources = {
-    
+    logger.info("before showResources:")
     // Get a list of resource docs from the API server
     // This will throw an exception if resource_docs key is not populated
     // Convert the json representation to ResourceDoc (pretty much a one to one mapping)
@@ -1170,8 +1170,9 @@ WIP to add comments on resource docs. This code copied from Sofit.
 
     // In case we use Extraction.decompose
     implicit val formats = net.liftweb.json.DefaultFormats
-
-    "#login_status_message" #> loggedInStatusMessage &
+    
+    logger.info("starting rending:")
+    val cssResult = "#login_status_message" #> loggedInStatusMessage &
     "#bank_selector" #> doBankSelect _ &
     "#account_selector" #> doAccountSelect _ &
     "#view_selector" #> doViewSelect _ &
@@ -1246,7 +1247,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
                   else if (resources.find(_.id == currentOperationId).map(_.tags.head).getOrElse("API")==resources.find(_.id == i.id).map(_.tags.head).getOrElse("API")) //If the Tag is the current Tag.We do not need parameters.
                     s"#${i.id}" 
                   else
-                    s"?version=$apiVersionRequested&operation_id=${i.id}&bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}&transaction_id=${presetTransactionId}#${i.id}") &
+                    s"?version=$apiVersionRequested&operation_id=${i.id}&currentTag=${i.tags.head}&bank_id=${presetBankId}&account_id=${presetAccountId}&view_id=${presetViewId}&counterparty_id=${presetCounterpartyId}&transaction_id=${presetTransactionId}#${i.id}") &
                   "@api_list_item_link *" #> i.summary &
                   "@api_list_item_link [id]" #> s"index_of_${i.id}"
                   // ".content-box__available-since *" #> s"Implmented in ${i.implementedBy.version} by ${i.implementedBy.function}"
@@ -1325,7 +1326,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
         //The default tag is the first tag of the resource, if it is empty, we use the API Tag.
         val theResourcesFirstTag = resources.map(_.tags.headOption).flatten.headOption.getOrElse("API")
         val currentTag = resources.find(_.id == currentOperationId).map(_.tags.head).getOrElse(theResourcesFirstTag)
-        ".resource" #> (if (rawTagsParam.isDefined && !rawTagsParam.getOrElse("").isEmpty)  resources else (resources.filter(_.tags.head==currentTag))).map { i =>
+        ".resource" #> (if (rawTagsParam.isDefined && !rawTagsParam.getOrElse("").isEmpty)  resources else (resources)).map { i =>
           // append the anchor to the current url. Maybe need to set the catalogue to all etc else another user might not find if the link is sent to them.
           ".end-point-anchor [href]" #> s"#${i.id}" &
           ".content-box__headline *" #> i.summary &
@@ -1412,6 +1413,10 @@ WIP to add comments on resource docs. This code copied from Sofit.
         }
       }   
     }
+    logger.info("finishing rending:")
+
+    logger.info("after showResources:")
+    cssResult
   }
 
   def showGlossary = {

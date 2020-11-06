@@ -48,13 +48,19 @@ object ObpAPI extends Loggable {
    */
   object allBanksVar extends RequestVar[Box[BanksJson]] (Empty)
 
+  //  this is one month
+  val getBanksItemsJsonTTL: FiniteDuration = 30 days
+  
   def allBanks : Box[BanksJson]= {
+    var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
+    CacheKeyFromArguments.buildCacheKey {
+      Caching.memoizeSyncWithProvider(Some(cacheKey.toString()))(getBanksItemsJsonTTL) {
     allBanksVar.get match {
       case Full(a) => Full(a)
       case _ => allBanksVar.set(ObpGet(s"$obpPrefix/v3.1.0/banks").flatMap(_.extractOpt[BanksJson]))
         allBanksVar.get
     }
-  }
+  }}}
 
   def currentUser : Box[CurrentUserJson]= if(isLoggedIn){
     ObpGet(s"$obpPrefix/v2.0.0/users/current").flatMap(_.extractOpt[CurrentUserJson])
@@ -151,26 +157,37 @@ object ObpAPI extends Loggable {
    * The request vars ensure that for one page load, the same API call isn't made multiple times
    */
   object allResoucesVar extends SessionVar[Box[ResourceDocsJson]] (Empty)
-  
+
+  //  this is one month
+  val getResourceDocsJsonTTL: FiniteDuration = 30 days
   
   // Returns Json containing Resource Docs
   def getResourceDocsJson(apiVersion : String) : Box[ResourceDocsJson] = {
+    var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
+    CacheKeyFromArguments.buildCacheKey {
+      Caching.memoizeSyncWithProvider(Some(cacheKey.toString()))(getResourceDocsJsonTTL) {
     val requestParams = List("tags", "language", "functions")
         .map(paramName => (paramName, S.param(paramName)))
         .collect{
           case (paramName, Full(paramValue)) if(paramValue.trim.size > 0) => s"$paramName=$paramValue"
         }
         .mkString("?", "&", "")
-    val currentTag = S.param("currentTag").getOrElse("")
-    val resourceFromSession = allResoucesVar.map(_.resource_docs.filter(_.tags.head==currentTag))
-    val length = resourceFromSession.map(_.length).getOrElse(0)
-    if(length > 0){
-      resourceFromSession.map( ResourceDocsJson(_))
-    } else{
-      allResoucesVar.set(ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams").map(extractResourceDocsJson))
-    }
-
-  }
+//    val currentTag = S.param("currentTag").getOrElse("")
+//    val resourceFromSession = allResoucesVar.map(_.resource_docs.filter(_.tags.head==currentTag))
+//    val length = resourceFromSession.map(_.length).getOrElse(0)
+//    if(length > 0){
+//      resourceFromSession.map( ResourceDocsJson(_))
+//    } else{
+//      allResoucesVar.set(ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams").map(extractResourceDocsJson))
+//    }
+    
+    val response = ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams")
+    
+    logger.info("before Javlue-->CaseClass call:")
+    val result =  response.map(extractResourceDocsJson)
+    logger.info("after Javlue-->CaseClass  call:")
+    result
+  }}}
 
   /**
    * extract ResourceDocsJson and output details of error if extract json to case class fail
@@ -226,6 +243,7 @@ object OBPRequest extends MdcLoggable {
   implicit val formats = DefaultFormats
   //returns a tuple of the status code,  response body and list of headers
   def apply(apiPath : String, jsonBody : Option[JValue], method : String, headers : List[Header]) : Box[(Int, String, List[String])] = {
+    logger.info(s"before $apiPath call:")
     val statusAndBody = tryo {
       val credentials = OAuthClient.getAuthorizedCredential
       val apiUrl = OAuthClient.currentApiBaseUrl
@@ -286,7 +304,7 @@ object OBPRequest extends MdcLoggable {
       (status, builder.toString(), adjustedResponseHeaders)
     }
 
-    statusAndBody pass {
+    val result = statusAndBody pass {
       case Failure(msg, ex, _) => {
         val sw = new StringWriter()
         val writer = new PrintWriter(sw)
@@ -295,6 +313,8 @@ object OBPRequest extends MdcLoggable {
       }
       case _ => Unit
     }
+    logger.info(s"after $apiPath call:")
+    result
   }
 }
 
@@ -390,7 +410,12 @@ object APIUtils extends MdcLoggable {
 
   def getAPIResponseBody(responseCode : Int, body : String) : Box[JValue] = {
     responseCode match {
-      case 200 | 201 | 202 |204 => tryo{parse(body)}
+      case 200 | 201 | 202 |204 => 
+        logger.info("Before getAPIResponseBody: ")
+        val jvalue = tryo{parse(body)}
+        logger.info("After getAPIResponseBody: ")
+        jvalue
+        
       case _ => {
         val failMsg = "Bad response code (" + responseCode + ") from OBP API server: " + body
         logger.warn(failMsg)
