@@ -171,8 +171,9 @@ object OAuthClient extends MdcLoggable {
     success match {
       case Full(_) => S.redirectTo("/") //TODO: Allow this redirect to be customised
       case Failure(msg, exception, failure) => {
-        S.notice("redirect-link","Go To Home Page")
         logger.warn(s"Oauth1.0 Failure: $msg, ${failure}, ${exception}")
+        S.redirectTo("/")
+//        S.notice("redirect-link","Go To Home Page")
       } 
       case _ => logger.warn("Something went wrong in an oauth callback and there was no error message set for it")
     }

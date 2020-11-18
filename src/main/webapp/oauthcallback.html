@@ -38,6 +38,7 @@ Berlin 13359, Germany
     <script class="redirect-script" type="text/javascript">
         if(!($("#redirect-link").text() === "") ){
             $('#manual-redirect').show();
+            window.location.assign($('#redirect-link').attr('href'));
         }
     </script>
 
