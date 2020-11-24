@@ -179,18 +179,27 @@ object ObpAPI extends Loggable {
   }
   
   //  static resourceDocs can be cached for a long time, only be changed when new deployment.
-  val getStaticResourceDocsJsonTTL: FiniteDuration = 365 days
+  val getStaticResourceDocsJsonTTL: FiniteDuration = 0 days
   def getStaticResourceDocs(apiVersion : String, requestParams: String): List[ResourceDocJson] =  {
     var cacheKey = (randomUUID().toString, randomUUID().toString, randomUUID().toString)
     CacheKeyFromArguments.buildCacheKey {
       Caching.memoizeSyncWithProvider(Some(cacheKey.toString()))(getStaticResourceDocsJsonTTL) {
-        ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams&content=static").map(extractResourceDocsJson).map(_.resource_docs).head
+        val resources = ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams&content=static")
+        logger.info(s"getStaticResourceDocs------$resources")
+        val resourceDocJson= resources.map(extractResourceDocsJson).map(_.resource_docs).head
+        logger.info(s"getStaticResourceDocs------$resourceDocJson")
+        resourceDocJson
       }
     }
   }
   
-  def getDynamicResourceDocs(apiVersion : String, requestParams: String) =  
-    ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams&content=dynamic").map(extractResourceDocsJson).map(_.resource_docs).head
+  def getDynamicResourceDocs(apiVersion : String, requestParams: String) = {
+    val resources =  ObpGet(s"$obpPrefix/v3.1.0/resource-docs/$apiVersion/obp$requestParams&content=dynamic")
+    logger.info(s"getDynamicResourceDocs------$resources")
+    val resourceDocJson =  resources.map(extractResourceDocsJson).map(_.resource_docs).head
+    logger.info(s"getDynamicResourceDocs------$resourceDocJson")
+    resourceDocJson
+  }
 
   /**
    * extract ResourceDocsJson and output details of error if extract json to case class fail
