@@ -1,8 +1,8 @@
 package code.util
 
-import net.liftweb.common.{Failure, Full, Box}
 import net.liftweb.util.{Mailer, Props}
 import code.util.Helper.MdcLoggable
+import net.liftweb.http.S
 
 object MyExceptionLogger extends MdcLoggable{
   import net.liftweb.http.Req
@@ -17,7 +17,7 @@ object MyExceptionLogger extends MdcLoggable{
     val currentTime = now.toString
     val stackTrace = new String(outputStream.toByteArray)
     val error = currentTime + ": " + stackTrace
-    val host = Helper.getPropsValue("base_url", "unknown host")
+    val host = S.hostAndPath
 
     val mailSent = for {
       from <- Helper.getPropsValue("mail.exception.sender.address") ?~ "Could not send mail: Missing props param for 'from'"

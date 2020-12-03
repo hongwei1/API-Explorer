@@ -187,7 +187,7 @@ object OAuthClient extends MdcLoggable {
     mostRecentLoginAttemptProvider.set(Full(provider))
     val credential = setNewCredential(provider)
 
-    val oauthcallbackUrl = Helper.getPropsValue("base_url", S.hostName) + "/oauthcallback"
+    val oauthcallbackUrl = S.hostAndPath + "/oauthcallback"
     val authUrl = provider.oAuthProvider.retrieveRequestToken(credential.consumer, oauthcallbackUrl)
     
     S.redirectTo(authUrl)

@@ -4,6 +4,7 @@ import code.lib.ObpAPI._
 import code.lib.ObpJson.AccountJson
 import code.util.Branding.activeBrand
 import net.liftweb.common._
+import net.liftweb.http.S
 import net.liftweb.http.SHtml.ElemAttr
 import net.liftweb.http.S.addFunctionMap
 import net.liftweb.http.js.JsCmd
@@ -54,15 +55,7 @@ Returns a string which can be used for the title of the account
   }
 
 
-  def getHostname(): String = {
-    Helper.getPropsValue("base_url", "") match {
-      case s: String if s.nonEmpty => s.split(":").lift(1) match {
-        case Some(s) => s.replaceAll("\\/", "").replaceAll("\\.", "-")
-        case None => "unknown"
-      }
-      case _ => "unknown"
-    }
-  }
+  def getHostname(): String =  S.hostName
 
   trait MdcLoggable extends Loggable {
     MDC.put("host" -> getHostname)
