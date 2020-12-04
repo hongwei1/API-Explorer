@@ -1181,7 +1181,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
       if (OAuthClient.loggedIn) "" else "Some options and calls require login."
     }
 
-
+    val oauthcallbackUrl = S.hostAndPath + "/oauthcallback"
     // In case we use Extraction.decompose
     implicit val formats = net.liftweb.json.DefaultFormats
     val cssResult = "#login_status_message" #> loggedInStatusMessage &
@@ -1226,6 +1226,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
     "@version_path [href]" #> s"$baseVersionUrl" &
     "@resource_docs_path [href]" #> s"$resourceDocsPath" &
     "@swagger_path [href]" #> s"$swaggerPath" &
+    "@git_commit *" #> oauthcallbackUrl &
     "@git_commit [href]" #> s"https://github.com/OpenBankProject/API-Explorer/commit/$currentGitCommit" &
     "@chinese_version_path [href]" #> s"$chineseVersionPath" &
     "@all_partial_functions [href]" #> s"$allPartialFunctions" &
