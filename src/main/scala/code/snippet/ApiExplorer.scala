@@ -376,8 +376,8 @@ WIP to add comments on resource docs. This code copied from Sofit.
       AUv100,
       BahrainOBFVersionV100,
       "0.6v1",
-      CNBV9v100,
-      "b1")
+      CNBV9v100
+    )
 
     // Set the version to use.
     val apiVersion: String = {
@@ -1093,7 +1093,6 @@ WIP to add comments on resource docs. This code copied from Sofit.
 
     def usingHumanReadableTitle(versions:List[String]) = {
       versions.map(i => (i
-        .replace("b1", "API Builder")
         .replace(BGVersionV133, "Berlin Group 1.3.3")
         .replace(BGVersionV13, "Berlin Group 1.3")
         .replace(BahrainOBFVersionV100, "BAHRAIN OBF 1.0.0")
