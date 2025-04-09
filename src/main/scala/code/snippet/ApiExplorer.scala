@@ -160,7 +160,7 @@ WIP to add comments on resource docs. This code copied from Sofit.
   logger.info(s"transaction_id in url param is $presetTransactionId")
 
 
-  val presetConnector = S.param("connector").getOrElse("kafka_vSept2018")
+  val presetConnector = S.param("connector").getOrElse("rabbitmq_vOct2024")
   logger.info(s"connector in url param is $presetConnector")
 
   val queryString = S.queryString
